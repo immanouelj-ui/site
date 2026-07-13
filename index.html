@@ -276,11 +276,13 @@
     filter:drop-shadow(0 40px 55px rgba(0,0,0,0.32));
   }
   .i-face{position:absolute;top:0;left:0;}
-  .i-front,.i-back{width:300px;height:610px;border-radius:48px;backface-visibility:hidden;}
+  .i-front,.i-back{
+    width:300px;height:610px;border-radius:48px;backface-visibility:hidden;
+    padding:11px;
+  }
   .i-front{
     transform:translateZ(11px);
     background:linear-gradient(150deg,#ed9257 0%,#cf6a30 44%,#a5471b 100%);
-    padding:11px;
   }
   .i-screen{
     position:relative;width:100%;height:100%;
@@ -309,31 +311,6 @@
   .i-back{
     transform:rotateY(180deg) translateZ(11px);
     background:linear-gradient(150deg,#cf6a30 0%,#eb9053 48%,#b8551f 100%);
-  }
-  .i-cam{
-    position:absolute;top:24px;left:24px;
-    width:104px;height:104px;border-radius:30px;
-    background:rgba(60,25,8,0.28);
-    box-shadow:inset 0 0 0 1px rgba(255,255,255,0.18);
-  }
-  .i-lens{
-    position:absolute;width:34px;height:34px;border-radius:50%;
-    background:radial-gradient(circle at 40% 35%, #4a4a4a 0%, #0c0c0c 60%);
-    box-shadow:inset 0 0 0 3px #2a2a2a, 0 1px 2px rgba(0,0,0,0.4);
-  }
-  .i-lens.l1{top:12px;left:12px;}
-  .i-lens.l2{bottom:12px;left:12px;}
-  .i-lens.l3{top:12px;right:12px;}
-  .i-flash{
-    position:absolute;bottom:20px;right:22px;
-    width:13px;height:13px;border-radius:50%;
-    background:radial-gradient(circle,#fff6e0,#d9c07a);
-  }
-  .i-brand{
-    position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);
-    text-align:center;font-family:var(--serif);font-style:italic;
-    font-size:26px;font-weight:600;color:rgba(255,255,255,0.85);
-    letter-spacing:-0.02em;
   }
 
   /* Tranches (épaisseur) */
@@ -614,15 +591,15 @@
             <div class="i-edge i-edge-r"></div>
             <div class="i-edge i-edge-t"></div>
             <div class="i-edge i-edge-b"></div>
-            <!-- Dos : module photo -->
+            <!-- Dos : second écran avec un autre site -->
             <div class="i-face i-back">
-              <div class="i-cam">
-                <div class="i-lens l1"></div>
-                <div class="i-lens l2"></div>
-                <div class="i-lens l3"></div>
+              <div class="i-screen">
+                <div class="i-island"></div>
+                <div class="i-viewport" id="phoneViewportBack">
+                  <div class="i-loading" id="phoneLoadingBack">Chargement…</div>
+                  <iframe id="phoneFrameBack" title="Aperçu mobile (dos)" referrerpolicy="no-referrer" loading="lazy"></iframe>
+                </div>
               </div>
-              <div class="i-flash"></div>
-              <div class="i-brand">PC</div>
             </div>
           </div>
         </div>
@@ -811,52 +788,63 @@
     ];
 
     var tabs = document.getElementById('phoneTabs');
-    var viewport = document.getElementById('phoneViewport');
-    var iframe = document.getElementById('phoneFrame');
-    var loading = document.getElementById('phoneLoading');
     var openLink = document.getElementById('phoneOpen');
     var stage = document.getElementById('iphoneStage');
     var phone = document.getElementById('iphone3d');
     var interactBtn = document.getElementById('phoneInteract');
     var hint = document.getElementById('phoneHint');
-    if(!tabs || !iframe || !phone) return;
+    if(!tabs || !phone) return;
 
     var MOBILE_WIDTH = 390; // largeur de rendu mobile de l'iframe
 
-    function scalePhone(){
-      var w = viewport.clientWidth, h = viewport.clientHeight;
+    // Les deux écrans du téléphone (avant / dos)
+    var faces = [
+      { key:'front', viewport:document.getElementById('phoneViewport'),
+        iframe:document.getElementById('phoneFrame'),     loading:document.getElementById('phoneLoading'),     idx:0 },
+      { key:'back',  viewport:document.getElementById('phoneViewportBack'),
+        iframe:document.getElementById('phoneFrameBack'), loading:document.getElementById('phoneLoadingBack'), idx:1 }
+    ];
+    var nextPtr = 2 % sites.length; // prochain site à envoyer sur une face cachée
+
+    function scaleFace(face){
+      var w = face.viewport.clientWidth, h = face.viewport.clientHeight;
       var scale = w / MOBILE_WIDTH;
-      iframe.style.transform = 'scale(' + scale + ')';
-      iframe.style.height = (h / scale) + 'px';
+      face.iframe.style.transform = 'scale(' + scale + ')';
+      face.iframe.style.height = (h / scale) + 'px';
     }
-    window.addEventListener('resize', scalePhone);
+    function scaleAll(){ faces.forEach(scaleFace); }
+    window.addEventListener('resize', scaleAll);
 
-    function loadSite(url){
-      if(loading) loading.classList.remove('hide');
-      iframe.src = url;
-      if(openLink) openLink.href = url;
-      scalePhone();
+    function loadFace(face, idx){
+      face.idx = idx;
+      if(face.loading) face.loading.classList.remove('hide');
+      face.iframe.src = sites[idx].url;
+      scaleFace(face);
     }
-
-    iframe.addEventListener('load', function(){
-      if(loading) loading.classList.add('hide');
-      scalePhone();
+    faces.forEach(function(face){
+      face.iframe.addEventListener('load', function(){
+        if(face.loading) face.loading.classList.add('hide');
+        scaleFace(face);
+      });
     });
 
+    // Onglets : chargent le site sur la face actuellement visible
+    var tabEls = [];
     sites.forEach(function(site, i){
       var btn = document.createElement('button');
-      btn.className = 'phone-tab' + (i === 0 ? ' active' : '');
+      btn.className = 'phone-tab';
       btn.textContent = site.name;
       btn.addEventListener('click', function(){
-        tabs.querySelectorAll('.phone-tab').forEach(function(b){ b.classList.remove('active'); });
-        btn.classList.add('active');
-        loadSite(site.url);
+        loadFace(visibleFace(), i);
+        syncUI();
       });
       tabs.appendChild(btn);
+      tabEls.push(btn);
     });
 
-    loadSite(sites[0].url);
-    setTimeout(scalePhone, 300);
+    loadFace(faces[0], 0);
+    loadFace(faces[1], 1);
+    setTimeout(scaleAll, 300);
 
     // --- Rotation 3D : auto-rotation + glisser pour orbiter à 360° ---
     var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -865,11 +853,34 @@
     var dragging = false, interactive = false;
     var lastX = 0, lastY = 0;
     var autoRotate = !reduceMotion;
+    var frontVisible = true; // cos(rotY) > 0 au départ
 
     function apply(){
       phone.style.transform = 'rotateY(' + rotY + 'deg) rotateX(' + rotX + 'deg)';
     }
+    function isFrontVisible(){ return Math.cos(rotY * Math.PI / 180) >= 0; }
+    function visibleFace(){ return isFrontVisible() ? faces[0] : faces[1]; }
+
+    function syncUI(){
+      var vf = visibleFace();
+      if(openLink) openLink.href = sites[vf.idx].url;
+      tabEls.forEach(function(b, i){ b.classList.toggle('active', i === vf.idx); });
+    }
+
+    // Quand une face passe côté caché, on y charge le site suivant → on les voit tous
+    function checkFaceCycle(){
+      var nowFront = isFrontVisible();
+      if(nowFront !== frontVisible){
+        frontVisible = nowFront;
+        var hiddenFace = nowFront ? faces[1] : faces[0]; // la face qui vient de se cacher
+        loadFace(hiddenFace, nextPtr);
+        nextPtr = (nextPtr + 1) % sites.length;
+        syncUI();
+      }
+    }
+
     apply();
+    syncUI();
 
     function frame(){
       if(!interactive){
@@ -879,10 +890,11 @@
           velY *= 0.95; velX *= 0.95;
           rotY += velY; rotX += velX;
         } else if(autoRotate){
-          rotY += 0.28;
+          rotY += 0.3;
         }
         rotX = Math.max(-40, Math.min(40, rotX));
         apply();
+        checkFaceCycle();
       }
       requestAnimationFrame(frame);
     }
@@ -904,6 +916,7 @@
       rotY += dx * 0.5; rotX -= dy * 0.5;
       velY = dx * 0.5; velX = -dy * 0.5;
       apply();
+      checkFaceCycle();
     });
     function endDrag(){ dragging = false; stage.classList.remove('dragging'); }
     stage.addEventListener('pointerup', endDrag);
@@ -915,8 +928,15 @@
       if(on){
         phone.classList.add('interactive');
         phone.style.transition = 'transform .5s ease';
-        rotY = 0; rotX = 0; velY = 0; velX = 0;
+        // fige sur la face actuellement tournée vers l'utilisateur
+        if(isFrontVisible()){
+          rotY = Math.round(rotY / 360) * 360;
+        } else {
+          rotY = Math.round((rotY - 180) / 360) * 360 + 180;
+        }
+        rotX = 0; velY = 0; velX = 0;
         apply();
+        syncUI();
         setTimeout(function(){ phone.style.transition = ''; }, 550);
         interactBtn.textContent = 'Reprendre la rotation';
         interactBtn.classList.add('ghost');

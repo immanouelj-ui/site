@@ -582,7 +582,7 @@
                 <div class="i-island"></div>
                 <div class="i-viewport" id="phoneViewport">
                   <div class="i-loading" id="phoneLoading">Chargement…</div>
-                  <iframe id="phoneFrame" title="Aperçu mobile" referrerpolicy="no-referrer" loading="lazy"></iframe>
+                  <iframe id="phoneFrame" title="Aperçu mobile" referrerpolicy="no-referrer" loading="lazy" scrolling="no"></iframe>
                 </div>
               </div>
             </div>
@@ -597,7 +597,7 @@
                 <div class="i-island"></div>
                 <div class="i-viewport" id="phoneViewportBack">
                   <div class="i-loading" id="phoneLoadingBack">Chargement…</div>
-                  <iframe id="phoneFrameBack" title="Aperçu mobile (dos)" referrerpolicy="no-referrer" loading="lazy"></iframe>
+                  <iframe id="phoneFrameBack" title="Aperçu mobile (dos)" referrerpolicy="no-referrer" loading="lazy" scrolling="no"></iframe>
                 </div>
               </div>
             </div>
@@ -799,9 +799,9 @@
 
     // Les deux écrans du téléphone (avant / dos)
     var faces = [
-      { key:'front', viewport:document.getElementById('phoneViewport'),
+      { key:'front', el:document.querySelector('.i-front'), viewport:document.getElementById('phoneViewport'),
         iframe:document.getElementById('phoneFrame'),     loading:document.getElementById('phoneLoading'),     idx:0 },
-      { key:'back',  viewport:document.getElementById('phoneViewportBack'),
+      { key:'back',  el:document.querySelector('.i-back'),  viewport:document.getElementById('phoneViewportBack'),
         iframe:document.getElementById('phoneFrameBack'), loading:document.getElementById('phoneLoadingBack'), idx:1 }
     ];
     var nextPtr = 2 % sites.length; // prochain site à envoyer sur une face cachée
@@ -857,6 +857,11 @@
 
     function apply(){
       phone.style.transform = 'rotateY(' + rotY + 'deg) rotateX(' + rotX + 'deg)';
+      // Chrome n'applique pas backface-visibility aux iframes : on masque la
+      // face cachée en JS pour éviter l'effet miroir (voir l'avant par-derrière).
+      var fv = isFrontVisible();
+      if(faces[0].el) faces[0].el.style.visibility = fv ? 'visible' : 'hidden';
+      if(faces[1].el) faces[1].el.style.visibility = fv ? 'hidden' : 'visible';
     }
     function isFrontVisible(){ return Math.cos(rotY * Math.PI / 180) >= 0; }
     function visibleFace(){ return isFrontVisible() ? faces[0] : faces[1]; }

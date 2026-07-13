@@ -297,8 +297,8 @@
   }
   .i-viewport{position:absolute;inset:0;overflow:hidden;background:#fff;}
   .i-viewport img.i-shot{
-    position:absolute;top:0;left:0;width:100%;height:100%;display:block;
-    object-fit:cover;object-position:top center;background:#fff;
+    position:absolute;top:0;left:0;width:100%;height:auto;display:block;
+    background:#fff;will-change:transform;
   }
   .i-shot-fallback{
     position:absolute;inset:0;z-index:2;
@@ -794,10 +794,10 @@
   // --- Aperçu mobile en direct dans le cadre iPhone ---
   (function(){
     var sites = [
-      { name: 'Choisis Ta Borne', url: 'https://choisistaborne.fr' },
-      { name: "IRV'OHM",          url: 'https://irvohm.fr' },
-      { name: 'Kosher Map',       url: 'https://koshermap.store' },
-      { name: 'CRM',              url: 'https://crm-zeta-two-60.vercel.app/' }
+      { name: 'Choisis Ta Borne', url: 'https://choisistaborne.fr',          shot: 'assets/shots/choisistaborne.png' },
+      { name: "IRV'OHM",          url: 'https://irvohm.fr',                   shot: 'assets/shots/irvohm.png' },
+      { name: 'Kosher Map',       url: 'https://koshermap.store',             shot: 'assets/shots/koshermap.png' },
+      { name: 'CRM',              url: 'https://crm-zeta-two-60.vercel.app/', shot: 'assets/shots/crm.png' }
     ];
 
     var tabs = document.getElementById('phoneTabs');
@@ -812,7 +812,8 @@
     // en secours + une carte au nom du site en dernier recours : aucune face
     // ne reste blanche, même si un site refuse l'iframe (X-Frame-Options, SPA…).
     function shotUrl(url){
-      return 'https://image.thum.io/get/width/640/viewportWidth/390/noanimate/' + url;
+      // fullpage = capture de tout le site, viewportWidth 390 = rendu mobile
+      return 'https://image.thum.io/get/fullpage/width/390/viewportWidth/390/noanimate/' + url;
     }
     function shotFallbackUrl(url){
       return 'https://s.wordpress.com/mshots/v1/' + encodeURIComponent(url) + '?w=640';
@@ -836,11 +837,14 @@
 
       face.img.addEventListener('load', function(){
         if(face.loading) face.loading.classList.add('hide');
+        startScroll(face);
       });
       face.img.addEventListener('error', function(){
-        if(!face.triedFallback){
-          face.triedFallback = true;
-          face.img.src = shotFallbackUrl(sites[face.idx].url);
+        face.tries = (face.tries || 0) + 1;
+        if(face.tries === 1){
+          face.img.src = shotUrl(sites[face.idx].url);          // 1er secours : capture live thum.io
+        } else if(face.tries === 2){
+          face.img.src = shotFallbackUrl(sites[face.idx].url);  // 2e secours : mShots
         } else {
           face.img.style.display = 'none';
           if(face.loading) face.loading.classList.add('hide');
@@ -853,11 +857,30 @@
 
     function loadFace(face, idx){
       face.idx = idx;
-      face.triedFallback = false;
+      face.tries = 0;
+      if(face.anim){ face.anim.cancel(); face.anim = null; }
+      face.img.style.transform = 'translateY(0)';
       if(face.loading) face.loading.classList.remove('hide');
       face.fallback.style.display = 'none';
       face.img.style.display = '';
-      face.img.src = shotUrl(sites[idx].url);
+      face.img.src = sites[idx].shot; // capture locale (fiable), secours en ligne via onerror
+    }
+
+    // Défilement automatique : fait défiler toute la capture (haut → bas → haut)
+    // dans l'écran du téléphone, pour montrer le site entier.
+    function startScroll(face){
+      if(face.anim){ face.anim.cancel(); face.anim = null; }
+      var img = face.img, vp = face.viewport;
+      if(!img.naturalWidth) return;
+      var dispH = vp.clientWidth * (img.naturalHeight / img.naturalWidth); // hauteur affichée
+      var dist = Math.max(0, dispH - vp.clientHeight);
+      if(dist < 12) return; // rien à faire défiler
+      if(!img.animate) return; // navigateur sans Web Animations : reste en haut
+      var dur = Math.min(45000, Math.max(9000, dist * 22)); // vitesse douce
+      face.anim = img.animate(
+        [{ transform:'translateY(0)' }, { transform:'translateY(' + (-dist) + 'px)' }],
+        { duration:dur, direction:'alternate', iterations:Infinity, easing:'ease-in-out' }
+      );
     }
 
     // Onglets : chargent le site sur la face actuellement visible

@@ -249,7 +249,7 @@
   .model3d-head{max-width:520px;margin:0 auto 30px;}
   .model3d-note{color:var(--ink-soft);font-size:13.5px;margin-top:10px;}
 
-  .phone-showcase{display:flex;flex-direction:column;align-items:center;gap:30px;}
+  .phone-showcase{display:flex;flex-direction:column;align-items:center;gap:26px;}
   .phone-tabs{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;}
   .phone-tab{
     border:1px solid var(--line);background:#fff;color:var(--ink-soft);
@@ -259,45 +259,106 @@
   .phone-tab:hover{border-color:var(--ink);color:var(--ink);}
   .phone-tab.active{background:#e8590c;border-color:#e8590c;color:#fff;}
 
-  .phone-frame{
-    position:relative;
-    width:300px;height:612px;
-    background:linear-gradient(150deg,#e07b3e 0%,#c85a24 45%,#a8481b 100%);
-    border-radius:54px;
-    padding:13px;
-    box-shadow:0 40px 80px rgba(0,0,0,0.28),
-               inset 0 0 0 2px rgba(255,255,255,0.14),
-               inset 0 0 0 6px rgba(0,0,0,0.06);
+  /* --- iPhone 3D (CSS preserve-3d, orbitable 360°) --- */
+  .iphone-stage{
+    perspective:1700px;
+    width:300px;height:640px;
+    display:flex;align-items:center;justify-content:center;
+    margin:0 auto;
+    touch-action:none;user-select:none;cursor:grab;
   }
-  .phone-screen{
+  .iphone-stage.dragging{cursor:grabbing;}
+  .iphone3d{
+    position:relative;width:300px;height:610px;
+    transform-style:preserve-3d;
+    transform:rotateY(-22deg) rotateX(6deg);
+    will-change:transform;
+    filter:drop-shadow(0 40px 55px rgba(0,0,0,0.32));
+  }
+  .i-face{position:absolute;top:0;left:0;}
+  .i-front,.i-back{width:300px;height:610px;border-radius:48px;backface-visibility:hidden;}
+  .i-front{
+    transform:translateZ(11px);
+    background:linear-gradient(150deg,#ed9257 0%,#cf6a30 44%,#a5471b 100%);
+    padding:11px;
+  }
+  .i-screen{
     position:relative;width:100%;height:100%;
-    background:#000;border-radius:42px;overflow:hidden;
-    box-shadow:inset 0 0 0 3px #1c1c1c;
+    border-radius:38px;background:#000;overflow:hidden;
+    box-shadow:inset 0 0 0 3px #131313;
   }
-  .phone-island{
-    position:absolute;top:11px;left:50%;transform:translateX(-50%);
-    width:92px;height:26px;background:#000;border-radius:999px;z-index:5;
+  .i-island{
+    position:absolute;top:12px;left:50%;transform:translateX(-50%);
+    width:88px;height:25px;background:#000;border-radius:999px;z-index:6;
+    box-shadow:0 0 0 1px #232323;
   }
-  .phone-viewport{position:absolute;inset:0;overflow:hidden;background:#fff;}
-  .phone-viewport iframe{
-    position:absolute;top:0;left:0;
-    width:390px;border:0;
-    transform-origin:top left;
-    background:#fff;
+  .i-viewport{position:absolute;inset:0;overflow:hidden;background:#fff;}
+  .i-viewport iframe{
+    position:absolute;top:0;left:0;width:390px;border:0;
+    transform-origin:top left;background:#fff;pointer-events:none;
   }
-  .phone-loading{
-    position:absolute;inset:0;z-index:3;
+  .iphone3d.interactive .i-viewport iframe{pointer-events:auto;}
+  .i-loading{
+    position:absolute;inset:0;z-index:4;
     display:flex;align-items:center;justify-content:center;
     font-size:12px;color:var(--ink-soft);letter-spacing:.04em;
-    background:var(--bg-alt);pointer-events:none;
-    transition:opacity .3s;
+    background:var(--bg-alt);pointer-events:none;transition:opacity .3s;
   }
-  .phone-loading.hide{opacity:0;}
-  .phone-open{
-    margin-top:2px;font-size:13px;font-weight:600;color:var(--accent);
+  .i-loading.hide{opacity:0;}
+
+  .i-back{
+    transform:rotateY(180deg) translateZ(11px);
+    background:linear-gradient(150deg,#cf6a30 0%,#eb9053 48%,#b8551f 100%);
+  }
+  .i-cam{
+    position:absolute;top:24px;left:24px;
+    width:104px;height:104px;border-radius:30px;
+    background:rgba(60,25,8,0.28);
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,0.18);
+  }
+  .i-lens{
+    position:absolute;width:34px;height:34px;border-radius:50%;
+    background:radial-gradient(circle at 40% 35%, #4a4a4a 0%, #0c0c0c 60%);
+    box-shadow:inset 0 0 0 3px #2a2a2a, 0 1px 2px rgba(0,0,0,0.4);
+  }
+  .i-lens.l1{top:12px;left:12px;}
+  .i-lens.l2{bottom:12px;left:12px;}
+  .i-lens.l3{top:12px;right:12px;}
+  .i-flash{
+    position:absolute;bottom:20px;right:22px;
+    width:13px;height:13px;border-radius:50%;
+    background:radial-gradient(circle,#fff6e0,#d9c07a);
+  }
+  .i-brand{
+    position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);
+    text-align:center;font-family:var(--serif);font-style:italic;
+    font-size:26px;font-weight:600;color:rgba(255,255,255,0.85);
+    letter-spacing:-0.02em;
+  }
+
+  /* Tranches (épaisseur) */
+  .i-edge{position:absolute;background:linear-gradient(#dd7a41,#9c4418);}
+  .i-edge-l,.i-edge-r{top:0;left:139px;width:22px;height:610px;border-radius:9px;}
+  .i-edge-r{transform:rotateY(90deg) translateZ(150px);}
+  .i-edge-l{transform:rotateY(-90deg) translateZ(150px);}
+  .i-edge-t,.i-edge-b{left:0;top:294px;width:300px;height:22px;border-radius:9px;}
+  .i-edge-t{transform:rotateX(90deg) translateZ(305px);}
+  .i-edge-b{transform:rotateX(-90deg) translateZ(305px);}
+
+  .iphone-controls{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;align-items:center;}
+  .iphone-btn{
+    border:1px solid var(--ink);background:var(--ink);color:#fff;
+    font-size:13px;font-weight:600;padding:10px 20px;border-radius:999px;
+    cursor:pointer;transition:all .2s;
+  }
+  .iphone-btn:hover{transform:translateY(-2px);}
+  .iphone-btn.ghost{background:#fff;color:var(--ink);}
+  .iphone-open{
+    font-size:13px;font-weight:600;color:var(--accent);
     display:inline-flex;align-items:center;gap:6px;
   }
-  .phone-open:hover{text-decoration:underline;}
+  .iphone-open:hover{text-decoration:underline;}
+  .iphone-hint{font-size:12px;color:var(--ink-soft);}
 
   /* About */
   #about .wrap{display:grid;grid-template-columns:0.9fr 1.1fr;gap:60px;align-items:center;}
@@ -536,16 +597,40 @@
       </div>
       <div class="phone-showcase">
         <div class="phone-tabs" id="phoneTabs"></div>
-        <div class="phone-frame">
-          <div class="phone-screen">
-            <div class="phone-island"></div>
-            <div class="phone-viewport" id="phoneViewport">
-              <div class="phone-loading" id="phoneLoading">Chargement…</div>
-              <iframe id="phoneFrame" title="Aperçu mobile" referrerpolicy="no-referrer" loading="lazy"></iframe>
+        <div class="iphone-stage" id="iphoneStage">
+          <div class="iphone3d" id="iphone3d">
+            <!-- Face avant : écran + site vivant -->
+            <div class="i-face i-front">
+              <div class="i-screen">
+                <div class="i-island"></div>
+                <div class="i-viewport" id="phoneViewport">
+                  <div class="i-loading" id="phoneLoading">Chargement…</div>
+                  <iframe id="phoneFrame" title="Aperçu mobile" referrerpolicy="no-referrer" loading="lazy"></iframe>
+                </div>
+              </div>
+            </div>
+            <!-- Tranches -->
+            <div class="i-edge i-edge-l"></div>
+            <div class="i-edge i-edge-r"></div>
+            <div class="i-edge i-edge-t"></div>
+            <div class="i-edge i-edge-b"></div>
+            <!-- Dos : module photo -->
+            <div class="i-face i-back">
+              <div class="i-cam">
+                <div class="i-lens l1"></div>
+                <div class="i-lens l2"></div>
+                <div class="i-lens l3"></div>
+              </div>
+              <div class="i-flash"></div>
+              <div class="i-brand">PC</div>
             </div>
           </div>
         </div>
-        <a class="phone-open" id="phoneOpen" href="#" target="_blank" rel="noopener">Ouvrir en plein écran ↗</a>
+        <div class="iphone-controls">
+          <button class="iphone-btn" id="phoneInteract">Interagir avec le site</button>
+          <a class="iphone-open" id="phoneOpen" href="#" target="_blank" rel="noopener">Plein écran ↗</a>
+        </div>
+        <div class="iphone-hint" id="phoneHint">↔ Glissez le téléphone pour le faire pivoter à 360°</div>
       </div>
     </div>
   </div>
@@ -730,7 +815,11 @@
     var iframe = document.getElementById('phoneFrame');
     var loading = document.getElementById('phoneLoading');
     var openLink = document.getElementById('phoneOpen');
-    if(!tabs || !iframe) return;
+    var stage = document.getElementById('iphoneStage');
+    var phone = document.getElementById('iphone3d');
+    var interactBtn = document.getElementById('phoneInteract');
+    var hint = document.getElementById('phoneHint');
+    if(!tabs || !iframe || !phone) return;
 
     var MOBILE_WIDTH = 390; // largeur de rendu mobile de l'iframe
 
@@ -766,9 +855,82 @@
       tabs.appendChild(btn);
     });
 
-    // Charge le premier site
     loadSite(sites[0].url);
     setTimeout(scalePhone, 300);
+
+    // --- Rotation 3D : auto-rotation + glisser pour orbiter à 360° ---
+    var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var rotY = -22, rotX = 6;
+    var velY = 0, velX = 0;
+    var dragging = false, interactive = false;
+    var lastX = 0, lastY = 0;
+    var autoRotate = !reduceMotion;
+
+    function apply(){
+      phone.style.transform = 'rotateY(' + rotY + 'deg) rotateX(' + rotX + 'deg)';
+    }
+    apply();
+
+    function frame(){
+      if(!interactive){
+        if(dragging){
+          // rien, le pointeur pilote
+        } else if(Math.abs(velY) > 0.02 || Math.abs(velX) > 0.02){
+          velY *= 0.95; velX *= 0.95;
+          rotY += velY; rotX += velX;
+        } else if(autoRotate){
+          rotY += 0.28;
+        }
+        rotX = Math.max(-40, Math.min(40, rotX));
+        apply();
+      }
+      requestAnimationFrame(frame);
+    }
+    if(!reduceMotion) requestAnimationFrame(frame);
+
+    stage.addEventListener('pointerdown', function(e){
+      if(interactive) return;
+      dragging = true;
+      lastX = e.clientX; lastY = e.clientY;
+      velY = 0; velX = 0;
+      stage.classList.add('dragging');
+      stage.setPointerCapture(e.pointerId);
+      if(hint) hint.style.opacity = '0';
+    });
+    stage.addEventListener('pointermove', function(e){
+      if(!dragging || interactive) return;
+      var dx = e.clientX - lastX, dy = e.clientY - lastY;
+      lastX = e.clientX; lastY = e.clientY;
+      rotY += dx * 0.5; rotX -= dy * 0.5;
+      velY = dx * 0.5; velX = -dy * 0.5;
+      apply();
+    });
+    function endDrag(){ dragging = false; stage.classList.remove('dragging'); }
+    stage.addEventListener('pointerup', endDrag);
+    stage.addEventListener('pointercancel', endDrag);
+
+    // --- Bouton Interagir : fige face à l'utilisateur et active le site ---
+    function setInteractive(on){
+      interactive = on;
+      if(on){
+        phone.classList.add('interactive');
+        phone.style.transition = 'transform .5s ease';
+        rotY = 0; rotX = 0; velY = 0; velX = 0;
+        apply();
+        setTimeout(function(){ phone.style.transition = ''; }, 550);
+        interactBtn.textContent = 'Reprendre la rotation';
+        interactBtn.classList.add('ghost');
+        stage.style.cursor = 'default';
+        if(hint) hint.textContent = 'Faites défiler et cliquez dans le site.';
+      } else {
+        phone.classList.remove('interactive');
+        interactBtn.textContent = 'Interagir avec le site';
+        interactBtn.classList.remove('ghost');
+        stage.style.cursor = 'grab';
+        if(hint){ hint.textContent = '↔ Glissez le téléphone pour le faire pivoter à 360°'; hint.style.opacity = '1'; }
+      }
+    }
+    if(interactBtn) interactBtn.addEventListener('click', function(){ setInteractive(!interactive); });
   })();
 </script>
 

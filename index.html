@@ -295,11 +295,17 @@
     box-shadow:0 0 0 1px #232323;
   }
   .i-viewport{position:absolute;inset:0;overflow:hidden;background:#fff;}
-  .i-viewport iframe{
-    position:absolute;top:0;left:0;width:390px;border:0;
-    transform-origin:top left;background:#fff;pointer-events:none;
+  .i-viewport img.i-shot{
+    position:absolute;top:0;left:0;width:100%;height:100%;display:block;
+    object-fit:cover;object-position:top center;background:#fff;
   }
-  .iphone3d.interactive .i-viewport iframe{pointer-events:auto;}
+  .i-shot-fallback{
+    position:absolute;inset:0;z-index:2;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+    text-align:center;padding:24px;background:var(--bg-alt);
+    font-family:var(--serif);font-size:20px;font-weight:600;color:var(--ink);
+  }
+  .i-shot-fallback small{font-family:var(--sans);font-size:12px;font-weight:500;color:var(--ink-soft);}
   .i-loading{
     position:absolute;inset:0;z-index:4;
     display:flex;align-items:center;justify-content:center;
@@ -570,7 +576,7 @@
     <div class="model3d-block">
       <div class="model3d-head">
         <div class="phone-model">iPhone 17 Pro Max <span>· Orange</span></div>
-        <p class="model3d-note">Aperçu en direct — choisissez un site, il s'affiche dans le téléphone.</p>
+        <p class="model3d-note">Faites tourner le téléphone à 360° — chaque site s'affiche à l'écran.</p>
       </div>
       <div class="phone-showcase">
         <div class="phone-tabs" id="phoneTabs"></div>
@@ -582,7 +588,7 @@
                 <div class="i-island"></div>
                 <div class="i-viewport" id="phoneViewport">
                   <div class="i-loading" id="phoneLoading">Chargement…</div>
-                  <iframe id="phoneFrame" title="Aperçu mobile" referrerpolicy="no-referrer" loading="lazy" scrolling="no"></iframe>
+                  <img id="phoneFrame" class="i-shot" alt="Aperçu mobile" />
                 </div>
               </div>
             </div>
@@ -597,14 +603,14 @@
                 <div class="i-island"></div>
                 <div class="i-viewport" id="phoneViewportBack">
                   <div class="i-loading" id="phoneLoadingBack">Chargement…</div>
-                  <iframe id="phoneFrameBack" title="Aperçu mobile (dos)" referrerpolicy="no-referrer" loading="lazy" scrolling="no"></iframe>
+                  <img id="phoneFrameBack" class="i-shot" alt="Aperçu mobile (dos)" />
                 </div>
               </div>
             </div>
           </div>
         </div>
         <div class="iphone-controls">
-          <button class="iphone-btn" id="phoneInteract">Interagir avec le site</button>
+          <button class="iphone-btn" id="phoneInteract">Mettre en pause</button>
           <a class="iphone-open" id="phoneOpen" href="#" target="_blank" rel="noopener">Plein écran ↗</a>
         </div>
         <div class="iphone-hint" id="phoneHint">↔ Glissez le téléphone pour le faire pivoter à 360°</div>
@@ -795,38 +801,57 @@
     var hint = document.getElementById('phoneHint');
     if(!tabs || !phone) return;
 
-    var MOBILE_WIDTH = 390; // largeur de rendu mobile de l'iframe
+    // Captures d'écran mobiles via services publics (sans clé). Deux services
+    // en secours + une carte au nom du site en dernier recours : aucune face
+    // ne reste blanche, même si un site refuse l'iframe (X-Frame-Options, SPA…).
+    function shotUrl(url){
+      return 'https://image.thum.io/get/width/640/viewportWidth/390/noanimate/' + url;
+    }
+    function shotFallbackUrl(url){
+      return 'https://s.wordpress.com/mshots/v1/' + encodeURIComponent(url) + '?w=640';
+    }
 
     // Les deux écrans du téléphone (avant / dos)
     var faces = [
       { key:'front', el:document.querySelector('.i-front'), viewport:document.getElementById('phoneViewport'),
-        iframe:document.getElementById('phoneFrame'),     loading:document.getElementById('phoneLoading'),     idx:0 },
+        img:document.getElementById('phoneFrame'),     loading:document.getElementById('phoneLoading'),     idx:0 },
       { key:'back',  el:document.querySelector('.i-back'),  viewport:document.getElementById('phoneViewportBack'),
-        iframe:document.getElementById('phoneFrameBack'), loading:document.getElementById('phoneLoadingBack'), idx:1 }
+        img:document.getElementById('phoneFrameBack'), loading:document.getElementById('phoneLoadingBack'), idx:1 }
     ];
     var nextPtr = 2 % sites.length; // prochain site à envoyer sur une face cachée
 
-    function scaleFace(face){
-      var w = face.viewport.clientWidth, h = face.viewport.clientHeight;
-      var scale = w / MOBILE_WIDTH;
-      face.iframe.style.transform = 'scale(' + scale + ')';
-      face.iframe.style.height = (h / scale) + 'px';
-    }
-    function scaleAll(){ faces.forEach(scaleFace); }
-    window.addEventListener('resize', scaleAll);
+    faces.forEach(function(face){
+      var fb = document.createElement('div');
+      fb.className = 'i-shot-fallback';
+      fb.style.display = 'none';
+      face.viewport.appendChild(fb);
+      face.fallback = fb;
+
+      face.img.addEventListener('load', function(){
+        if(face.loading) face.loading.classList.add('hide');
+      });
+      face.img.addEventListener('error', function(){
+        if(!face.triedFallback){
+          face.triedFallback = true;
+          face.img.src = shotFallbackUrl(sites[face.idx].url);
+        } else {
+          face.img.style.display = 'none';
+          if(face.loading) face.loading.classList.add('hide');
+          fb.innerHTML = sites[face.idx].name +
+            '<small>' + sites[face.idx].url.replace(/^https?:\/\//,'').replace(/\/$/,'') + '</small>';
+          fb.style.display = 'flex';
+        }
+      });
+    });
 
     function loadFace(face, idx){
       face.idx = idx;
+      face.triedFallback = false;
       if(face.loading) face.loading.classList.remove('hide');
-      face.iframe.src = sites[idx].url;
-      scaleFace(face);
+      face.fallback.style.display = 'none';
+      face.img.style.display = '';
+      face.img.src = shotUrl(sites[idx].url);
     }
-    faces.forEach(function(face){
-      face.iframe.addEventListener('load', function(){
-        if(face.loading) face.loading.classList.add('hide');
-        scaleFace(face);
-      });
-    });
 
     // Onglets : chargent le site sur la face actuellement visible
     var tabEls = [];
@@ -844,7 +869,6 @@
 
     loadFace(faces[0], 0);
     loadFace(faces[1], 1);
-    setTimeout(scaleAll, 300);
 
     // --- Rotation 3D : auto-rotation + glisser pour orbiter à 360° ---
     var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -945,13 +969,11 @@
         setTimeout(function(){ phone.style.transition = ''; }, 550);
         interactBtn.textContent = 'Reprendre la rotation';
         interactBtn.classList.add('ghost');
-        stage.style.cursor = 'default';
-        if(hint) hint.textContent = 'Faites défiler et cliquez dans le site.';
+        if(hint) hint.textContent = 'Cliquez « Plein écran » pour ouvrir le site.';
       } else {
         phone.classList.remove('interactive');
-        interactBtn.textContent = 'Interagir avec le site';
+        interactBtn.textContent = 'Mettre en pause';
         interactBtn.classList.remove('ghost');
-        stage.style.cursor = 'grab';
         if(hint){ hint.textContent = '↔ Glissez le téléphone pour le faire pivoter à 360°'; hint.style.opacity = '1'; }
       }
     }

@@ -248,23 +248,56 @@
   .model3d-block{text-align:center;}
   .model3d-head{max-width:520px;margin:0 auto 30px;}
   .model3d-note{color:var(--ink-soft);font-size:13.5px;margin-top:10px;}
-  .model3d-stage{
+
+  .phone-showcase{display:flex;flex-direction:column;align-items:center;gap:30px;}
+  .phone-tabs{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;}
+  .phone-tab{
+    border:1px solid var(--line);background:#fff;color:var(--ink-soft);
+    font-size:13px;font-weight:600;padding:9px 18px;border-radius:999px;
+    cursor:pointer;transition:all .2s;
+  }
+  .phone-tab:hover{border-color:var(--ink);color:var(--ink);}
+  .phone-tab.active{background:#e8590c;border-color:#e8590c;color:#fff;}
+
+  .phone-frame{
     position:relative;
-    width:min(360px, 80vw);
-    aspect-ratio:1/1.15;
-    margin:0 auto;
-    border-radius:20px;
-    background:radial-gradient(circle at 50% 40%, #fff2e8 0%, var(--bg-alt) 70%);
-    border:1px solid var(--line);
-    overflow:hidden;
+    width:300px;height:612px;
+    background:linear-gradient(150deg,#e07b3e 0%,#c85a24 45%,#a8481b 100%);
+    border-radius:54px;
+    padding:13px;
+    box-shadow:0 40px 80px rgba(0,0,0,0.28),
+               inset 0 0 0 2px rgba(255,255,255,0.14),
+               inset 0 0 0 6px rgba(0,0,0,0.06);
   }
-  .model3d-stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:grab;}
-  .model3d-stage canvas:active{cursor:grabbing;}
-  .model3d-fallback{
-    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-    padding:24px;text-align:center;font-size:13px;color:var(--ink-soft);
+  .phone-screen{
+    position:relative;width:100%;height:100%;
+    background:#000;border-radius:42px;overflow:hidden;
+    box-shadow:inset 0 0 0 3px #1c1c1c;
   }
-  .model3d-stage.loaded .model3d-fallback{display:none;}
+  .phone-island{
+    position:absolute;top:11px;left:50%;transform:translateX(-50%);
+    width:92px;height:26px;background:#000;border-radius:999px;z-index:5;
+  }
+  .phone-viewport{position:absolute;inset:0;overflow:hidden;background:#fff;}
+  .phone-viewport iframe{
+    position:absolute;top:0;left:0;
+    width:390px;border:0;
+    transform-origin:top left;
+    background:#fff;
+  }
+  .phone-loading{
+    position:absolute;inset:0;z-index:3;
+    display:flex;align-items:center;justify-content:center;
+    font-size:12px;color:var(--ink-soft);letter-spacing:.04em;
+    background:var(--bg-alt);pointer-events:none;
+    transition:opacity .3s;
+  }
+  .phone-loading.hide{opacity:0;}
+  .phone-open{
+    margin-top:2px;font-size:13px;font-weight:600;color:var(--accent);
+    display:inline-flex;align-items:center;gap:6px;
+  }
+  .phone-open:hover{text-decoration:underline;}
 
   /* About */
   #about .wrap{display:grid;grid-template-columns:0.9fr 1.1fr;gap:60px;align-items:center;}
@@ -499,11 +532,20 @@
     <div class="model3d-block">
       <div class="model3d-head">
         <div class="phone-model">iPhone 17 Pro Max <span>· Orange</span></div>
-        <p class="model3d-note">Modèle 3D réel — glissez pour orbiter à 360°.</p>
+        <p class="model3d-note">Aperçu en direct — choisissez un site, il s'affiche dans le téléphone.</p>
       </div>
-      <div class="model3d-stage" id="model3dStage">
-        <canvas id="model3dCanvas"></canvas>
-        <div class="model3d-fallback" id="model3dFallback">Le modèle 3D s'affichera ici une fois le site hébergé en ligne.</div>
+      <div class="phone-showcase">
+        <div class="phone-tabs" id="phoneTabs"></div>
+        <div class="phone-frame">
+          <div class="phone-screen">
+            <div class="phone-island"></div>
+            <div class="phone-viewport" id="phoneViewport">
+              <div class="phone-loading" id="phoneLoading">Chargement…</div>
+              <iframe id="phoneFrame" title="Aperçu mobile" referrerpolicy="no-referrer" loading="lazy"></iframe>
+            </div>
+          </div>
+        </div>
+        <a class="phone-open" id="phoneOpen" href="#" target="_blank" rel="noopener">Ouvrir en plein écran ↗</a>
       </div>
     </div>
   </div>
@@ -673,89 +715,60 @@
 
 </script>
 
-<script type="importmap">
-{
-  "imports": {
-    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
-  }
-}
-</script>
-<script type="module">
-  // --- Modèle 3D réel (FBX) de l'iPhone 17 Pro Max orange, orbitable à 360° ---
-  // Nécessite que le site soit servi en http(s) : le chargement du fichier FBX
-  // est bloqué par les navigateurs quand la page est ouverte en local (file://).
-  (async function(){
-    var stage = document.getElementById('model3dStage');
-    var canvas = document.getElementById('model3dCanvas');
-    var fallback = document.getElementById('model3dFallback');
-    if(!stage || !canvas) return;
+<script>
+  // --- Aperçu mobile en direct dans le cadre iPhone ---
+  (function(){
+    var sites = [
+      { name: 'Choisis Ta Borne', url: 'https://choisistaborne.fr' },
+      { name: "IRV'OHM",          url: 'https://irvohm.fr' },
+      { name: 'Kosher Map',       url: 'https://koshermap.store' },
+      { name: 'CRM',              url: 'https://crm-zeta-two-60.vercel.app/' }
+    ];
 
-    try{
-      var THREE = await import('three');
-      var { FBXLoader } = await import('three/addons/loaders/FBXLoader.js');
-      var { OrbitControls } = await import('three/addons/controls/OrbitControls.js');
+    var tabs = document.getElementById('phoneTabs');
+    var viewport = document.getElementById('phoneViewport');
+    var iframe = document.getElementById('phoneFrame');
+    var loading = document.getElementById('phoneLoading');
+    var openLink = document.getElementById('phoneOpen');
+    if(!tabs || !iframe) return;
 
-      var scene = new THREE.Scene();
-      var camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
-      camera.position.set(0, 0, 6);
+    var MOBILE_WIDTH = 390; // largeur de rendu mobile de l'iframe
 
-      var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-
-      scene.add(new THREE.AmbientLight(0xffffff, 0.7));
-      var key = new THREE.DirectionalLight(0xffffff, 1.1);
-      key.position.set(3, 4, 5);
-      scene.add(key);
-      var rim = new THREE.DirectionalLight(0xffb37a, 0.8);
-      rim.position.set(-4, -2, -3);
-      scene.add(rim);
-
-      var controls = new OrbitControls(camera, renderer.domElement);
-      controls.enableDamping = true;
-      controls.dampingFactor = 0.08;
-      controls.enablePan = false;
-      controls.enableZoom = false;
-      controls.autoRotate = true;
-      controls.autoRotateSpeed = 1.6;
-
-      function resize(){
-        var w = stage.clientWidth, h = stage.clientHeight;
-        camera.aspect = w / h;
-        camera.updateProjectionMatrix();
-        renderer.setSize(w, h, false);
-      }
-      window.addEventListener('resize', resize);
-
-      var loader = new FBXLoader();
-      loader.setPath('assets/iphone/');
-      loader.setResourcePath('assets/iphone/');
-      loader.load('model.fbx', function(object){
-        var box = new THREE.Box3().setFromObject(object);
-        var size = new THREE.Vector3();
-        var center = new THREE.Vector3();
-        box.getSize(size);
-        box.getCenter(center);
-        var maxDim = Math.max(size.x, size.y, size.z) || 1;
-        var scale = 3.2 / maxDim;
-        object.scale.setScalar(scale);
-        object.position.sub(center.multiplyScalar(scale));
-        scene.add(object);
-
-        resize();
-        stage.classList.add('loaded');
-
-        (function animate(){
-          requestAnimationFrame(animate);
-          controls.update();
-          renderer.render(scene, camera);
-        })();
-      }, undefined, function(err){
-        if(fallback) fallback.textContent = "Le modèle 3D n'a pas pu être chargé (site ouvert en local, ou hébergement requis).";
-      });
-    }catch(e){
-      if(fallback) fallback.textContent = "Le modèle 3D s'affichera une fois le site hébergé en ligne.";
+    function scalePhone(){
+      var w = viewport.clientWidth, h = viewport.clientHeight;
+      var scale = w / MOBILE_WIDTH;
+      iframe.style.transform = 'scale(' + scale + ')';
+      iframe.style.height = (h / scale) + 'px';
     }
+    window.addEventListener('resize', scalePhone);
+
+    function loadSite(url){
+      if(loading) loading.classList.remove('hide');
+      iframe.src = url;
+      if(openLink) openLink.href = url;
+      scalePhone();
+    }
+
+    iframe.addEventListener('load', function(){
+      if(loading) loading.classList.add('hide');
+      scalePhone();
+    });
+
+    sites.forEach(function(site, i){
+      var btn = document.createElement('button');
+      btn.className = 'phone-tab' + (i === 0 ? ' active' : '');
+      btn.textContent = site.name;
+      btn.addEventListener('click', function(){
+        tabs.querySelectorAll('.phone-tab').forEach(function(b){ b.classList.remove('active'); });
+        btn.classList.add('active');
+        loadSite(site.url);
+      });
+      tabs.appendChild(btn);
+    });
+
+    // Charge le premier site
+    loadSite(sites[0].url);
+    setTimeout(scalePhone, 300);
   })();
 </script>
 

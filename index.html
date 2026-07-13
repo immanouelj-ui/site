@@ -239,54 +239,13 @@
   #mobile-showcase .section-head{margin:0 auto 50px;text-align:center;}
   #mobile-showcase .section-head .eyebrow{margin:0 auto 14px;}
   #mobile-showcase .section-head p{margin:0 auto;}
-  .phone-stage{
-    display:flex;flex-direction:column;align-items:center;gap:22px;
-    perspective:1500px;
-  }
-  .phone-shell{
-    position:relative;
-    width:min(300px, 62vw);
-    aspect-ratio:390/844;
-    background:linear-gradient(155deg,#ff9a4d 0%,#ff7a1a 38%,#d85c00 70%,#a84400 100%);
-    border-radius:52px;
-    padding:14px;
-    box-shadow:0 40px 70px rgba(180,70,0,0.35), inset 0 0 0 2px rgba(255,255,255,0.25), inset 0 1px 3px rgba(255,255,255,0.4);
-    transform-style:preserve-3d;
-    transform:rotateY(-10deg) rotateX(5deg);
-    animation:floatPhone 6.5s ease-in-out infinite alternate;
-    cursor:grab;
-    touch-action:none;
-    user-select:none;
-  }
-  .phone-shell.dragging{cursor:grabbing;}
-  @keyframes floatPhone{
-    0%{transform:rotateY(-10deg) rotateX(5deg);}
-    100%{transform:rotateY(-4deg) rotateX(1deg);}
-  }
-  .phone-screen{
-    position:relative;width:100%;height:100%;
-    background:#000;border-radius:38px;overflow:hidden;
-    box-shadow:inset 0 0 0 3px #1a1a1a;
-  }
-  .dynamic-island{
-    position:absolute;top:12px;left:50%;transform:translateX(-50%);
-    width:32%;height:20px;background:#000;border:1px solid #222;
-    border-radius:14px;z-index:5;
-  }
-  .side-btn{position:absolute;background:#c25400;border-radius:2px;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.15);}
-  .btn-mute{left:-3px;top:100px;width:3px;height:26px;}
-  .btn-vol-up{left:-3px;top:140px;width:3px;height:46px;}
-  .btn-vol-down{left:-3px;top:196px;width:3px;height:46px;}
-  .btn-power{right:-3px;top:150px;width:3px;height:64px;}
   .phone-model{
     font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;
     color:var(--ink-soft);font-weight:600;
   }
   .phone-model span{color:#e8590c;}
-  .drag-hint-phone{font-size:12px;color:var(--ink-soft);opacity:1;transition:opacity .3s;}
-  .drag-hint-phone.hide{opacity:0;}
 
-  .model3d-block{margin-top:70px;padding-top:60px;border-top:1px solid var(--line);text-align:center;}
+  .model3d-block{text-align:center;}
   .model3d-head{max-width:520px;margin:0 auto 30px;}
   .model3d-note{color:var(--ink-soft);font-size:13.5px;margin-top:10px;}
   .model3d-stage{
@@ -306,25 +265,6 @@
     padding:24px;text-align:center;font-size:13px;color:var(--ink-soft);
   }
   .model3d-stage.loaded .model3d-fallback{display:none;}
-  .phone-site{
-    position:absolute;inset:0;overflow:hidden;background:#fff;
-    opacity:0;transition:opacity .6s ease;
-  }
-  .phone-site.active{opacity:1;z-index:2;}
-  .phone-site iframe{
-    position:absolute;top:0;left:0;
-    width:390px;height:844px;border:0;
-    transform-origin:top left;pointer-events:none;background:#fff;
-  }
-  .phone-caption{
-    font-family:var(--serif);font-style:italic;font-size:18px;font-weight:600;
-  }
-  .phone-dots{display:flex;gap:8px;}
-  .pdot{
-    width:8px;height:8px;border-radius:50%;border:1px solid var(--line);
-    background:#fff;cursor:pointer;padding:0;transition:background .2s, transform .2s;
-  }
-  .pdot.active{background:var(--ink);transform:scale(1.15);}
 
   /* About */
   #about .wrap{display:grid;grid-template-columns:0.9fr 1.1fr;gap:60px;align-items:center;}
@@ -553,49 +493,17 @@
     <div class="section-head">
       <div class="eyebrow">Aperçu mobile</div>
       <h2>Vos sites, pensés pour le mobile</h2>
-      <p>Toutes mes réalisations s'adaptent parfaitement aux smartphones. Glissez le téléphone pour le faire pivoter à 360°.</p>
-    </div>
-    <div class="phone-stage">
-      <div class="phone-model">iPhone 17 Pro Max <span>· Orange</span></div>
-      <div class="phone-shell" id="phoneShell">
-        <div class="side-btn btn-mute"></div>
-        <div class="side-btn btn-vol-up"></div>
-        <div class="side-btn btn-vol-down"></div>
-        <div class="side-btn btn-power"></div>
-        <div class="phone-screen">
-          <div class="dynamic-island"></div>
-          <div class="phone-site active" data-basewidth="390">
-            <iframe src="https://choisistaborne.fr" loading="lazy" title="Choisis Ta Borne — aperçu mobile" tabindex="-1" referrerpolicy="no-referrer"></iframe>
-          </div>
-          <div class="phone-site" data-basewidth="390">
-            <iframe src="https://irvohm.fr" loading="lazy" title="IRV'OHM — aperçu mobile" tabindex="-1" referrerpolicy="no-referrer"></iframe>
-          </div>
-          <div class="phone-site" data-basewidth="390">
-            <iframe src="https://koshermap.store" loading="lazy" title="Kosher Map — aperçu mobile" tabindex="-1" referrerpolicy="no-referrer"></iframe>
-          </div>
-          <div class="phone-site" data-basewidth="390">
-            <iframe src="https://crm-zeta-two-60.vercel.app/" loading="lazy" title="CRM — aperçu mobile" tabindex="-1" referrerpolicy="no-referrer"></iframe>
-          </div>
-        </div>
-      </div>
-      <div class="phone-caption" id="phoneCaption">Choisis Ta Borne</div>
-      <div class="phone-dots" id="phoneDots">
-        <button class="pdot active" data-i="0" aria-label="Choisis Ta Borne"></button>
-        <button class="pdot" data-i="1" aria-label="IRV'OHM"></button>
-        <button class="pdot" data-i="2" aria-label="Kosher Map"></button>
-        <button class="pdot" data-i="3" aria-label="CRM"></button>
-      </div>
-      <div class="drag-hint-phone" id="phoneDragHint">↻ Glisser pour pivoter à 360°</div>
+      <p>Toutes mes réalisations s'adaptent parfaitement aux smartphones.</p>
     </div>
 
     <div class="model3d-block">
       <div class="model3d-head">
-        <div class="phone-model">Modèle 3D <span>· iPhone 17 Pro Max Orange</span></div>
-        <p class="model3d-note">Rendu 3D réel, orbite à 360° à la souris. Ne s'affiche qu'une fois le site hébergé en ligne (nécessite un serveur, pas une simple ouverture du fichier).</p>
+        <div class="phone-model">iPhone 17 Pro Max <span>· Orange</span></div>
+        <p class="model3d-note">Modèle 3D réel — glissez pour orbiter à 360°.</p>
       </div>
       <div class="model3d-stage" id="model3dStage">
         <canvas id="model3dCanvas"></canvas>
-        <div class="model3d-fallback" id="model3dFallback">Le modèle 3D s'affichera ici une fois le site en ligne.</div>
+        <div class="model3d-fallback" id="model3dFallback">Le modèle 3D s'affichera ici une fois le site hébergé en ligne.</div>
       </div>
     </div>
   </div>
@@ -641,7 +549,7 @@
 <script>
   // --- Aperçus de sites : mise à l'échelle des iframes (1440x900) ---
   function scaleSitePreviews(){
-    document.querySelectorAll('.site-preview, .win-live, .phone-site').forEach(function(box){
+    document.querySelectorAll('.site-preview, .win-live').forEach(function(box){
       var iframe = box.querySelector('iframe');
       if(!iframe) return;
       var base = parseInt(box.getAttribute('data-basewidth'), 10) || 1440;
@@ -763,101 +671,6 @@
     }
   }
 
-  // --- Carrousel iPhone : les sites défilent dans l'écran ---
-  (function(){
-    var names = ["Choisis Ta Borne", "IRV'OHM", "Kosher Map", "CRM"];
-    var sites = document.querySelectorAll('#phoneShell .phone-site');
-    var dots = document.querySelectorAll('#phoneDots .pdot');
-    var caption = document.getElementById('phoneCaption');
-    var shell = document.getElementById('phoneShell');
-    if(!sites.length) return;
-    var current = 0;
-    var timer = null;
-
-    function show(i){
-      sites.forEach(function(s, idx){ s.classList.toggle('active', idx === i); });
-      dots.forEach(function(d, idx){ d.classList.toggle('active', idx === i); });
-      if(caption) caption.textContent = names[i] || '';
-      current = i;
-    }
-
-    function next(){ show((current + 1) % sites.length); }
-
-    function startCycle(){
-      stopCycle();
-      timer = setInterval(next, 4500);
-    }
-    function stopCycle(){ if(timer) clearInterval(timer); timer = null; }
-
-    dots.forEach(function(dot){
-      dot.addEventListener('click', function(){
-        show(parseInt(dot.getAttribute('data-i'), 10) || 0);
-        startCycle();
-      });
-    });
-
-    if(shell){
-      shell.addEventListener('pointerenter', stopCycle);
-      shell.addEventListener('pointerleave', startCycle);
-    }
-
-    startCycle();
-
-    // --- Rotation libre à 360° du téléphone (glisser pour tourner) ---
-    if(shell && !window.matchMedia('(prefers-reduced-motion: reduce)').matches){
-      var dragging = false;
-      var lastX = 0, lastY = 0;
-      var curRotY = -10, curRotX = 5;
-      var velY = 0, velX = 0;
-      var rafId = null;
-      var dragHint = document.getElementById('phoneDragHint');
-
-      function apply(){
-        shell.style.transform = 'rotateY(' + curRotY + 'deg) rotateX(' + curRotX + 'deg)';
-      }
-      function inertia(){
-        velY *= 0.94; velX *= 0.94;
-        curRotY += velY; curRotX += velX;
-        apply();
-        if(Math.abs(velY) > 0.03 || Math.abs(velX) > 0.03){
-          rafId = requestAnimationFrame(inertia);
-        }
-      }
-
-      shell.addEventListener('pointerdown', function(e){
-        dragging = true;
-        lastX = e.clientX; lastY = e.clientY;
-        velY = 0; velX = 0;
-        cancelAnimationFrame(rafId);
-        shell.style.animation = 'none';
-        shell.classList.add('dragging');
-        shell.setPointerCapture(e.pointerId);
-        if(dragHint) dragHint.classList.add('hide');
-      });
-      shell.addEventListener('pointermove', function(e){
-        if(!dragging) return;
-        var dx = e.clientX - lastX;
-        var dy = e.clientY - lastY;
-        lastX = e.clientX; lastY = e.clientY;
-        curRotY += dx * 0.6;
-        curRotX -= dy * 0.6;
-        velY = dx * 0.6;
-        velX = -dy * 0.6;
-        apply();
-      });
-      function endDrag(e){
-        if(!dragging) return;
-        dragging = false;
-        shell.classList.remove('dragging');
-        inertia();
-      }
-      shell.addEventListener('pointerup', endDrag);
-      shell.addEventListener('pointercancel', endDrag);
-      shell.addEventListener('pointerleave', function(e){
-        if(e.buttons === 0) endDrag(e);
-      });
-    }
-  })();
 </script>
 
 <script type="importmap">

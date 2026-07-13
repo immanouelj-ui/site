@@ -21,6 +21,7 @@
   }
   *{margin:0;padding:0;box-sizing:border-box;}
   html{scroll-behavior:smooth;}
+  html,body{overflow-x:clip;}
   body{
     font-family:var(--sans);
     color:var(--ink);
@@ -393,6 +394,12 @@
     #contact{margin:0 16px;padding:56px 24px;}
     .wrap{padding:0 20px;}
     .hero-visual{margin-top:20px;}
+    .contact-email{font-size:18px;word-break:break-word;max-width:100%;}
+  }
+
+  @media (max-width:380px){
+    .iphone-stage{transform:scale(0.82);transform-origin:top center;height:530px;}
+    .phone-showcase{gap:16px;}
   }
 </style>
 </head>
